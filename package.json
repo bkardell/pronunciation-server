@@ -1,0 +1,13 @@
+{
+  "name": "word-tip-audio",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "build-index": "node --env-file-if-exists=.env build-index.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}

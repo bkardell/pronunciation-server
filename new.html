@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New pronunciation · a-term audio</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif; font-size: 15px;
+    color: #111827; background: #f9fafb;
+    padding: 2rem 1.5rem 4rem; max-width: 640px; margin: 0 auto;
+  }
+  header { margin-bottom: 1.5rem; }
+  h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: .3rem; }
+  .meta { color: #6b7280; font-size: .875rem; }
+  .meta a { color: #2563eb; text-decoration: none; }
+  .meta a:hover { text-decoration: underline; }
+  .meta code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; font-size: .8em; }
+  form, .result {
+    background: #fff; border-radius: 8px; padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 1.25rem;
+  }
+  label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: .3rem; }
+  .field { margin-bottom: 1rem; }
+  .hint { font-size: .78rem; color: #6b7280; margin-top: .3rem; }
+  input[type=text] {
+    width: 100%; font: inherit; padding: .5rem .65rem;
+    border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: inherit;
+  }
+  input[type=text]:focus { outline: 2px solid #2563eb; outline-offset: -1px; border-color: transparent; }
+  #ipa, .ipa { font-family: 'Charis SIL', 'Doulos SIL', 'Noto Sans', 'Lucida Sans Unicode', 'DejaVu Sans', sans-serif; }
+  .palette { display: flex; flex-wrap: wrap; gap: 4px; margin-top: .45rem; }
+  .palette button {
+    all: unset; cursor: pointer; min-width: 1.9rem; text-align: center;
+    padding: 3px 6px; border-radius: 5px; background: #f3f4f6; color: #374151;
+    font-family: 'Charis SIL', 'Doulos SIL', 'Noto Sans', 'Lucida Sans Unicode', 'DejaVu Sans', sans-serif;
+  }
+  .palette button:hover { background: #e5e7eb; }
+  .palette button:focus-visible { outline: 2px solid #2563eb; }
+  .row { display: flex; gap: .75rem; align-items: center; }
+  .submit {
+    all: unset; cursor: pointer; padding: 6px 16px; border-radius: 20px;
+    background: #111827; color: #f9fafb; font-size: .9rem;
+  }
+  .submit:hover { background: #374151; }
+  .submit:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+  .submit[disabled] { opacity: .5; cursor: default; }
+  .status { font-size: .85rem; color: #6b7280; }
+  .result[hidden] { display: none; }
+  .result h2 { font-size: .95rem; font-weight: 600; margin-bottom: .6rem; }
+  .result.error { background: #fef2f2; color: #991b1b; }
+  .result p { font-size: .875rem; margin-bottom: .6rem; word-break: break-all; }
+  .result audio { width: 100%; margin-bottom: .6rem; }
+  .result a { color: #2563eb; }
+  .tag { display: inline-block; font-size: .72rem; padding: 1px 8px; border-radius: 10px; background: #e5e7eb; color: #374151; margin-left: .4rem; }
+  .tag.new { background: #dcfce7; color: #166534; }
+  .usage { margin-top: 1.1rem; border-top: 1px solid #e5e7eb; padding-top: 1rem; }
+  .usage h3 { font-size: .85rem; font-weight: 600; margin: 1rem 0 .35rem; color: #374151; }
+  .usage h3:first-child { margin-top: 0; }
+  .usage p { font-size: .83rem; color: #4b5563; margin-bottom: .45rem; word-break: normal; }
+  .usage code { background: #f3f4f6; padding: 0 4px; border-radius: 3px; font-size: .9em; }
+  .snippet { position: relative; margin-bottom: .5rem; }
+  .snippet pre {
+    background: #111827; color: #e5e7eb; border-radius: 6px;
+    padding: .7rem 4.5rem .7rem .8rem; overflow-x: auto;
+    font: .78rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre;
+  }
+  .snippet pre code { background: none; padding: 0; border-radius: 0; font-size: inherit; color: inherit; }
+  .copy {
+    all: unset; cursor: pointer; position: absolute; top: .45rem; right: .45rem;
+    font-size: .72rem; padding: 2px 9px; border-radius: 10px; background: #374151; color: #f9fafb;
+  }
+  .copy:hover { background: #4b5563; }
+  .copy:focus-visible { outline: 2px solid #93c5fd; }
+</style>
+</head>
+<body>
+<header>
+  <h1>New pronunciation</h1>
+  <p class="meta"><a href="/index">← Audio index</a> · Provider: <code id="provider">…</code></p>
+</header>
+
+<form id="form" novalidate>
+  <div class="field">
+    <label for="term">Term</label>
+    <input type="text" id="term" name="term" required maxlength="100" autocomplete="off" spellcheck="false" placeholder="Niamh">
+    <p class="hint">Exactly as it appears in the text (a hyphen and a space give different files). The file name uses it lower-cased.</p>
+  </div>
+
+  <div class="field">
+    <label for="ipa">IPA</label>
+    <input type="text" id="ipa" name="ipa" required maxlength="100" autocomplete="off" spellcheck="false" placeholder="niːv">
+    <p class="hint">Without slashes or brackets.</p>
+    <div class="palette" id="palette" aria-label="Insert IPA symbol"></div>
+  </div>
+
+  <div class="field">
+    <label for="lang">Language</label>
+    <input type="text" id="lang" name="lang" required list="langs" autocomplete="off" spellcheck="false" placeholder="en-GB"
+           pattern="[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*">
+    <datalist id="langs">
+      <option value="en-GB"><option value="en-US"><option value="en"><option value="ga"><option value="ga-IE">
+      <option value="cy"><option value="fr"><option value="fr-FR"><option value="de"><option value="es"><option value="it">
+      <option value="pt-BR"><option value="nl"><option value="sv"><option value="da"><option value="nb"><option value="fi">
+      <option value="pl"><option value="cs"><option value="hu"><option value="ru"><option value="ja"><option value="zh-CN"><option value="ko">
+    </datalist>
+    <p class="hint">A BCP-47 tag, matching the <code>lang</code> a-term will look it up under. Files are stored in a folder of this name.</p>
+  </div>
+
+  <div class="row">
+    <button type="submit" class="submit" id="submit">Create MP3</button>
+    <span class="status" id="status" role="status"></span>
+  </div>
+</form>
+
+<section class="result" id="result" hidden aria-live="polite"></section>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const form = $('form'), result = $('result'), status = $('status'), submit = $('submit');
+  const LANG_RE = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/;
+  const BAD_RE  = /[\u0000-\u001f\u007f\/\\]/;
+
+  // Remember the last language used (per browser; optional).
+  try { $('lang').value = localStorage.getItem('pronunciation-server:lang') || 'en-GB'; } catch { $('lang').value = 'en-GB'; }
+
+  fetch('/health').then(r => r.json()).then(h => {
+    $('provider').textContent = h.provider + (h.provider === 'test' ? ' (fake audio, will not play)' : '');
+  }).catch(() => { $('provider').textContent = 'unknown'; });
+
+  // IPA palette: inserts at the cursor in the IPA field.
+  const SYMBOLS = 'ˈ ˌ ː ə ɪ ʊ ɛ æ ɑ ɒ ɔ ʌ ɜ ɐ i u e o a θ ð ʃ ʒ tʃ dʒ ŋ ɡ ɹ ɾ r ʔ x ç ɣ ɲ ʎ j w'.split(' ');
+  const ipa = $('ipa');
+  for (const s of SYMBOLS) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = s; b.setAttribute('aria-label', 'Insert ' + s);
+    b.addEventListener('click', () => {
+      const { selectionStart: a = ipa.value.length, selectionEnd: z = ipa.value.length } = ipa;
+      ipa.setRangeText(s, a, z, 'end');
+      ipa.focus();
+    });
+    $('palette').append(b);
+  }
+
+  let blobUrl = null;
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const term = $('term').value.normalize('NFC').trim();
+    const ipaVal = ipa.value.normalize('NFC').trim().replace(/^[\/\[]|[\/\]]$/g, '');
+    const lang = $('lang').value.trim();
+
+    const problem =
+      !term ? 'Enter a term.' :
+      !ipaVal ? 'Enter the IPA.' :
+      !LANG_RE.test(lang) ? 'Language must be a BCP-47 tag, like en-GB or ga.' :
+      BAD_RE.test(term) || BAD_RE.test(ipaVal) ? 'Term and IPA cannot contain / or \\.' : null;
+    if (problem) return show({ error: problem });
+
+    try { localStorage.setItem('pronunciation-server:lang', lang); } catch {}
+    submit.disabled = true; status.textContent = 'Working…';
+
+    try {
+      const res = await fetch('/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ term, ipa: ipaVal, lang }),
+      });
+      if (!res.ok) {
+        const msg = await res.json().catch(() => ({}));
+        throw new Error(msg.error || res.status + ' ' + res.statusText);
+      }
+      const path = res.headers.get('X-Term-Path');
+      const hit  = res.headers.get('X-Term-Cache') === 'hit';
+      const blob = await res.blob();
+      show({ term, ipa: ipaVal, lang, path: path && decodeURIComponent(path), hit, blob });
+    } catch (err) {
+      show({ error: err.message });
+    } finally {
+      submit.disabled = false; status.textContent = '';
+    }
+  });
+
+  function show(r) {
+    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+    result.hidden = false;
+    result.replaceChildren();
+    result.classList.toggle('error', !!r.error);
+    if (r.error) {
+      result.append(el('h2', {}, 'Could not create the MP3'), el('p', {}, r.error));
+      return;
+    }
+    blobUrl = URL.createObjectURL(r.blob);
+    const href = r.path ? '/cache/' + r.path.split('/').map(encodeURIComponent).join('/') : blobUrl;
+    const file = r.path ? r.path.split('/').pop() : 'audio.mp3';
+
+    const h = el('h2', {}, r.term + ' ');
+    h.append(el('span', { class: 'ipa' }, '/' + r.ipa + '/'),
+             el('span', { class: 'tag' + (r.hit ? '' : ' new') }, r.hit ? 'already cached' : 'new'));
+    const audio = el('audio', { controls: '', src: blobUrl });
+    const saved = el('p', {}, 'Saved as ');
+    saved.append(el('code', {}, r.path || '(unknown path)'));
+    const links = el('p', {});
+    links.append(el('a', { href }, 'Open'), ' · ', el('a', { href, download: file }, 'Download'), ' · ', el('a', { href: '/index' }, 'Index'));
+    result.append(h, audio, saved, links);
+    if (r.path) result.append(usage(r));
+    audio.play().catch(() => {});
+  }
+
+  // ── "Use it in a page": snippets for <a-term> ──────────────────────────
+  function usage({ term, ipa, lang, path }) {
+    const base = location.origin + '/cache/';
+    const src  = base + path.split('/').map(encodeURIComponent).join('/');
+    const one  = '<script type="module" src="a-term.js"><\/script>\n\n' +
+      '<a-term lang="' + attr(lang) + '" ipa="' + attr(ipa) + '" audio-src="' + attr(src) + '">' + text(term) + '</a-term>';
+    const head =
+      '<meta name="a-term-audio-url" content="' + base + '{lang}/{term}-{ipa}.mp3">\n' +
+      '<script type="module" src="adapters/audio.js"><\/script>\n' +
+      '<script type="module" src="a-term.js"><\/script>';
+    const dict =
+      '<script type="module">\n' +
+      "  import { dictionary } from './a-term.js';\n" +
+      '  dictionary.add({ term: ' + JSON.stringify(term) + ', ipa: ' + JSON.stringify(ipa) + ', lang: ' + JSON.stringify(lang) + ' });\n' +
+      '<\/script>\n\n' +
+      '<a-term lang="' + attr(lang) + '">' + text(term) + '</a-term>';
+    const toggle =
+      '<script type="module" src="a-term-toggle.js"><\/script>\n' +
+      '<a-term-toggle></a-term-toggle>';
+    const css = ':root { --a-term-pronunciation: inline; }';
+
+    const u = el('div', { class: 'usage' });
+    u.append(
+      el('h3', {}, 'Use it in a page'),
+      el('p', {}, 'Load a-term.js, then put this element where the term appears. It plays this file directly; no adapter is needed.'),
+      snippet(one),
+
+      el('h3', {}, 'Or: every term from this server'),
+      el('p', {}, 'Point a-term\'s audio adapter at this server\'s files once, in <head>. Then each term only needs a dictionary entry (or an ipa attribute), and the adapter finds its file from the term, IPA and language.'),
+      snippet(head),
+      snippet(dict),
+
+      el('h3', {}, 'Showing pronunciations'),
+      el('p', {}, 'a-term hides the IPA and Pronounce button unless --a-term-pronunciation is inline. Give readers a switch for it (checkbox plus Alt+Shift+1):'),
+      snippet(toggle),
+      el('p', {}, 'or set it yourself:'),
+      snippet(css),
+    );
+    if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+      u.append(el('p', {}, 'These URLs point at ' + location.origin + ', which only works on this computer. Once the cache folder is published, replace ' + base + ' with its public address.'));
+    }
+    return u;
+  }
+
+  function snippet(code) {
+    const wrap = el('div', { class: 'snippet' });
+    const pre  = el('pre', {});
+    pre.append(el('code', {}, code));
+    const btn = el('button', { type: 'button', class: 'copy' }, 'Copy');
+    btn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(code); btn.textContent = 'Copied'; }
+      catch { btn.textContent = 'Select & copy'; }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+    wrap.append(pre, btn);
+    return wrap;
+  }
+
+  function attr(v) { return String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+  function text(v) { return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  function el(tag, attrs, text) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+</script>
+</body>
+</html>
